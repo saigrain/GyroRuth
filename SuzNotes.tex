@@ -1,0 +1,289 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{txfonts}
+\usepackage{graphicx}
+\usepackage[top=2cm,left=2cm,right=2cm,bottom=1.5cm,headsep=7mm,footskip=7mm]{geometry}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{natbib}
+\parindent 0in
+\parskip 1mm
+\parsep 1mm
+\newenvironment{packed_enum}{
+\begin{enumerate}\vspace{-3mm}
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}{\end{enumerate}}\vspace{-4mm}
+\newenvironment{packed_item}{
+\begin{itemize}
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}{\end{itemize}}
+\newenvironment{packed_desc}{
+\begin{description}
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+}{\end{description}}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\begin{document}
+
+\title{Notes on modelling gyrochronology model for Ruth's Kepler asteroseismic sample}
+\author{Suzanne Aigrain}
+\date{\today}
+
+\maketitle
+
+\section{Preliminaries}
+
+\subsection{The data}
+
+The dataset consists of $N$ stars, labelled by the index $n =
+1,\ldots,N$. For each star, we have the following main observables:
+\begin{packed_item}
+\item the effective temperature $T$, derived from the star's spectrum,
+  in degrees Kelvin;
+\item the rotation period $P$, derived from the star's light curve, in
+  days;
+\item the age $A$, derived from asteroseismology, in Gyr.
+\item the surface gravity $\log g$ \red{(not sure if it's derived from
+    the star's spectrum, asteroseismology, or both)}, in
+  g\,cm$^{3}$. For convenience of notation, we define $G=\log g$;
+\end{packed_item}
+All the above have measurement uncertainties which are assumed to be
+known, Gaussian and independent, i.e.
+\begin{equation}
+p(\hat{X}_n|X_n) = \mathcal{N}(\hat{X}_n|X_n,\sigma_{X,n}^2)
+\end{equation}
+where $X$ represents any of the above variables, $X_n$ is the true
+value of this variable in observation $n$, $\hat{X}_n$ is the noisy
+observed value and $\sigma_{X,n}$ the associated measurement
+uncertainty.
+
+\subsection{The astrophysics}
+\label{sec:astro}
+
+The range of the key observables covered by our sample is as follows:
+$5500 < T < 6500$, $1 <P < 50$, $1 < A < 10$, and $3.5 < G <
+4.5$. Main sequence stars cooler (or bluer) than the so-called Kraft
+break (which is somewhere in the range $6000 < T_K < 6500$), are
+assumed to follow a unique gyrochronology relation relating $T$ (or
+mass, or $B-V$ or $J-K$ colour), $P$ (or $v \sin i$) and $A$. The goal
+of this study is to use the dataset to improve the calibration of this
+gyrochronology relation.  A commonly adopted form for the
+gyrochronology relation in the recent literature (see e.g.\
+\citealt{bar07,mam+08}) is:
+\begin{equation}
+P = a \left[(B-V) - c\right]^b \, \times \, A^d,
+\label{eq:gyro1}
+\end{equation}
+with typical values for the parameters $a \sim 0.4$, $b \sim
+0.3$--0.6, $c \sim 0.4$--0.5 and $d \sim 0.5$--0.6. In this
+expression, $c$ corresponds to the Kraft break, and the
+gyronochronology relation is not defined for stars bluer than
+this. Since we are working with $T$ rather than colour, we might adopt
+a similar relation:
+\begin{equation}
+P = a (T - T_K)^b  \, \times \, t^d.
+\label{eq:gyro2}
+\end{equation}
+
+Our sample also includes main sequence stars hotter than the Kraft
+break, which show very little rotational evolution: they tend to have
+relatively short rotation periods (1--10\,d) but aside from that their
+periods display little dependence on either effective temperature or
+age. Although the Kraft break is related to the size of the outer
+convection zone, the effective temperature (or colour) at which it
+occurs is not well established, and it is even possible that stars
+close to the Kraft break could display either behaviour (rotational
+evolution following the gyrochronology relation, or no evolution),
+seemingly at random. Finally, our sample also contains stars which
+have recently left the main sequence, i.e.\ sub-giants, which on the
+contrary experience very rapid spin-down. Contrarily to the Kraft
+break, we can assume that we know (from stellar evolution models) the
+location of the main sequence turnoff as a function of effective
+temperature and surface gravity.
+
+\subsection{The statistical approach}
+
+We want model the data in such a way as to 
+\begin{packed_item}
+\item enable us to compute a predictive distibution for the age of a
+  star given estimates of its effective temperature and rotation
+  period.
+\item take into account the uncertainties on all three observables in
+  our sample;
+\item allow for the fact that there are three distinct populations in
+  our sample, and that it may not be possible to uniquely assign a
+  given star to a specific population;
+\item readily enable us to incorporate other datasets (e.g.\ from
+  clusters, including cooler stars) in the future.
+\end{packed_item}
+
+The first point above suggests that we should treat $A$ as the
+dependent variable and $T$ and $P$ as the independent variables.  This
+implies re-arranging Eq.~\ref{eq:gyro2}:
+\begin{equation}
+\log A = \alpha+ \beta \log \left(T-T_K \right) + \delta \log P,
+\label{eq:gyro3}
+\end{equation}
+where $\alpha = - \log(a)/d$, $\beta = \log(b)/ d$, and $\delta=-1/d$.
+
+The second point can be addressed by using a sampling approach to
+marginalise over the uncertainties on the independent variables, as
+described in Section~\ref{sec:noisy_plane}.  The third point suggests
+either a composite model function, or a mixture model approach, as
+described in Section~\ref{sec:mixture}. The fourth point is trivial in
+a hierarchical Bayesian framework, but it does mean that we want our
+model to be defined over a range of temperatures wider than the one in
+our sample.
+
+\section{Constructing the model}
+
+We start by writing down by writing the likelihood marginalised over
+the observational errors:
+\begin{equation}
+\label{eq:fullL}
+  p(\{\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n\}|\theta,T_K) = 
+  \prod_{n=1}^{N} \int p(\hat{A}_n,\hat{T}_n,\hat{P}_n,\log {g}_n,A_n,T_n,P_n,G_n|\theta,T_K) 
+  {\rm d}A_n {\rm d}T_n {\rm d}P_n {\rm d}G_n
+\end{equation}
+where $\theta = \{\alpha,\beta\,\delta\}$ represents the parameters of
+the gyrochronology relation.  The joint probability distribution is
+then given by:
+\begin{equation}
+  \label{eq:jointprob}
+  p(\hat{A}_n,\hat{T}_n,\hat{P}_n,\log {g}_n,A_n,T_n,P_n,G_n|\theta,T_K) = 
+  p(A_n,T_n,P_n,G_n|\theta,T_K) p(\hat{A}_n|A_n) 
+  p(\hat{T}_n|T_n) p(\hat{P}_n|P_n) p(\hat{G}_n|G_n),
+\end{equation}
+If we chose to treat the transition between the different populations
+of stars in our sample as a step function, we can write the
+marginalised likelihood for a single star as the sum of three
+integrals corresponding to the three different regimes:
+\begin{equation}
+  \label{eq:L1}
+  p(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n|\theta,T_K)  = 
+  \sum_{k=1}^3 \int_k p_k(A_n,T_n,P_n,G_n|\theta,T_K) 
+  p(\hat{A}_n|A_n) p(\hat{T}_n|T_n) p(\hat{P}_n|P_n) p(\hat{G}_n|G_n),
+  {\rm d}A_n {\rm d}T_n {\rm d}P_n {\rm d}G_n
+\end{equation}
+where $k=1$ corresponds to main sequence stars cooler than the Kraft
+break, $k=2$ to main sequence stars hotter than the Kraft break, and
+$k=3$ to stars which have left the main sequence, and $\int_k f(x)
+{\rm d}x$ is the integral of $f(x)$ with respect to $x$, evaluated
+over regime $k$. Note that each star may still have a finite
+probability of belonging to any one of the individual regimes, because
+of the uncertainties on the observables.
+
+The joint probability distribution for the true observables takes a
+different from in each of the three regimes:
+\begin{eqnarray}
+p_1(A_n,T_n,P_n,G_n|\theta,T_K) & = & p_1(T_n|T_K) p_1(G_n) p_1(P_n) p_1(A_n|T_n,P_n,\theta,T_K), \label{eq:composite1} \\
+p_2(A_n,T_n,P_n,G_n|\phi_2,T_K) & = & p_2(T_n|T_K) p_2(G_n) p_2(P_n|phi_2) p_2(A_n),~{\rm and}\label{eq:composite2} \\
+p_3(A_n,T_n,P_n,G_n|\phi_3) & = & p_3(T_n) p_3(G_n) p_3(P_n|\phi_3) p_3(A_n)\label{eq:composite3},
+\end{eqnarray}
+where:
+\begin{equation}
+p_1(A_n|T_n,P_n,\theta,T_K) = \delta \left\{ \log A_n - \left[ \alpha+ \beta \log \left(T-T_K \right) + \delta \log P_n \right] \right\}.
+\end{equation}
+These equations merit a few comments:
+\begin{packed_item}
+\item The form of Eqs.\,(\ref{eq:composite2}) and
+  (\ref{eq:composite3}) implies that there is no correlation between
+  $P$ and $T$ or $A$ in regimes 2 and 3. This is reasonable for regime
+  2, where we do not expect any rotational evolution, as discussed in
+  Section~\ref{sec:astro}.  It is less appropriate, at first sight,
+  for regime 3, where on the contrary we expect very rapid rotational
+  evolution, but this regime is not the focus of the present study, we
+  are less interested in modelling it in detail.
+\item The priors are defined separately over each regime, for two
+  reasons. First, the priors over $T$ and $G$ need to reflect the
+  different ranges for these variables in the three
+  regimes. Additionally, we can choose different period priors in the
+  different regimes. For example we might adopt a log-normal prior
+  with a different mean and/or variance in each regime, or a
+  log-uniform prior defined over a different range, to reflect our
+  expectation that stars tend to have longer or shorter rotation
+  periods in a given regime. In Eqs.~(\ref{eq:composite2}) and
+  (\ref{eq:composite3}), we have specified a prior with
+  hyper-parameters $\phi$, which could be inferred or marginalised
+  over at the same time as $\theta$ and $T_K$.
+\item The use of mutually independent priors for $T$, $G$ and $A$ in
+  Eqs.\,(\ref{eq:composite1}--\ref{eq:composite3}) also implies that
+  there is no correlation between these quantities. Of course, this
+  isn't true: there are built-in correlations because of stellar
+  evolution. In principle, it would be more adequate to construct a
+  joint, age dependent prior on $T$ and $G$, using theoretical
+  evolutionary models, assuming an initial mass distribution and a
+  star formation history (i.e. a prior on $A$). However, that would
+  make the results dependent on the very models we are trying to test,
+  and in any case the quality of our date probably doesn't warrant
+  such a level of sophistication. So for now I would say use a uniform
+  prior on $T$ and $G$ and a log-uniform prior on $A$.
+\end{packed_item}
+
+The three terms in Eq.\,(\ref{eq:L1}) become:
+\begin{eqnarray}
+p_1(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n|\theta,T_K) & = & \int_1 p_1(T_n|T_K) p_1(G_n) p_1(P_n) p_1(A_n|T_n,P_n,\theta,T_K)
+p(\hat{A}_n|A) p(\hat{T}_n|T_n) p(\hat{P}_n|P_n) p(\hat{G}_n|G_n) {\rm d}A_n {\rm d}T_n {\rm d}P_n {\rm d}G_n
+\label{eq:compo1} \\
+p_2(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n|\phi,T_K) & = & \int_2 p_2(T_n|T_K) p_2(G_n) p_2(P_n|\phi) p_2(A_n) 
+p(\hat{A}_n|A) p(\hat{T}_n|T_n) p(\hat{P}_n|P_n) p(\hat{G}_n|G_n) {\rm d}A_n {\rm d}T_n {\rm d}P_n {\rm d}G_n
+\label{eq:compo2} \\
+p_3(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n) & = & \int_3 p_3(T_n) p_3(G_n) p_3(P_n) p_3(A_n) 
+p(\hat{A}_n|A) p(\hat{T}_n|T_n) p(\hat{P}_n|P_n) p(\hat{G}_n|G_n) {\rm d}A_n {\rm d}T_n {\rm d}P_n {\rm d}G_n
+ \label{eq:compo3} 
+\end{eqnarray}
+In the single regime case, if using fixed priors, these act as
+constant normalisation constants, and can be ignored. However, if we
+have multiple regimes with different priors, and / or if the priors
+depend on the (hyper-)parameter we wish to infer or marginalise over,
+as is the case here, we must keep track of them in the calculation.
+
+To evaluate the marginalised likelihood, we are going to use
+importance sampling. Say we have $J_n$ samples:
+\begin{eqnarray}
+T_n^{(j)} & \sim & p(T_n|\hat{T}_n) \nonumber \\
+P_n^{(j)} & \sim & p(P_n|\hat{P}_n)  \nonumber  \\
+A_n^{(j)} & \sim & p(T_n|\hat{A}_n)  \nonumber  \\
+G_n^{(j)} & \sim & p(G_n|\hat{G}_n) 
+\end{eqnarray}
+Eq.\,(\ref{eq:compo1}) can be approximated as
+\begin{equation}
+p_1(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n|\theta,T_K) \approx \frac{1}{J_n}\sum_{j=1}^N f_1(T_n^{(j)},G_n^{(j)}|T_K) p_1(T^{(j)}_n|T_K) p_1(G^{(j)}_n) p_1(P^{(j)}_n) p(\hat{A}_n|\tilde{A}_n^{(j)})
+\end{equation}
+where $f_1(T_n^{(j)},G_n^{(j)}|T_K) = 1$ if the sample falls in regime
+1 and 0 otherwise, and $\tilde{A}$ is the value of $A$ predicted by
+the gyrochronology relation given $T^{(j)}$ and $P^{(j)}$:
+\begin{equation}
+\log \tilde{A}^{(j)}_n = \alpha+ \beta \log \left(T^{(j)}_n-T_K \right) + \delta \log P^{(j)}_n.
+\end{equation}
+Similarly, Eq.\,(\ref{eq:compo2}) can be approximated as
+\begin{equation}
+p_2(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n|\phi,T_K) \approx \frac{1}{J_n}\sum_{j=1}^N f_2(T_n^{(j)},G_n^{(j)}|T_K) p_2(T^{(j)}_n|T_K) p_2(G^{(j)}_n) p_2(P^{(j)}_n|\phi) p_2(A^{(j)}_n).
+\end{equation}
+where $f_2(T_n^{(j)},G_n^{(j)}|T_K) = 1$ if the sample falls in regime
+2 and 0 otherwise.  Finally, Eq.\,(\ref{eq:compo3}) can be
+approximated as
+\begin{equation}
+p_3(\hat{P}_n,\hat{A}_n,\hat{T}_n,\hat{G}_n) \approx \frac{1}{J_n}\sum_{j=1}^N f_3(T_n^{(j)},G_n^{(j)}) p_3(T^{(j)}_n) p_3(G^{(j)}_n) p_3(P^{(j)}_n) p_3(A^{(j)}_n).
+\end{equation}
+where $f_3(T_n^{(j)},G_n^{(j)}) = 1$ if the sample falls in regime 3
+and 0 otherwise.
+
+The full marginalised likelihood is then
+\begin{equation}
+\log p(\{\hat{A}_n,\hat{T}_n,\hat{P}_n,\hat{G}_n\}|\theta,\phi,m)
+\approx \\sum_{i=1}^n \log
+\left(\frac{1}{J_n}\sum_{j=1}^N \mathcal{P}^{(j)} \right)
+\end{equation}
+where 
+\begin{eqnarray}
+\mathcal{P}^{(j)} & = &  f_1(T_n^{(j)},G_n^{(j)}|T_K) p_1(T^{(j)}_n|T_K) p_1(G^{(j)}_n) p_1(P^{(j)}_n) p(\hat{A}_n|\tilde{A}_n^{(j)}) + \nonumber \\
+&& f_2(T_n^{(j)},G_n^{(j)}|T_K) p_2(T^{(j)}_n|T_K) p_2(G^{(j)}_n)
+p_2(P^{(j)}_n|\phi) p_2(A^{(j)}_n) + \nonumber \\
+&& f_3(T_n^{(j)},G_n^{(j)}) p_3(T^{(j)}_n) p_3(G^{(j)}_n) p_3(P^{(j)}_n) p_3(A^{(j)}_n) 
+\end{eqnarray}
+\end{document}
